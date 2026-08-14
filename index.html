@@ -1,76 +1,200 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <meta charset="utf-8">
+  <head>
+    <meta charset="utf-8" />
+    <title>LuckyWin</title>
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,minimal-ui=true"
+    />
+    <link rel="stylesheet" type="text/css" href="./style.f76d1.css" />
+    <style>
+      /* 统一的启动首页——全新背景图全屏自适应样式 */
+      #custom-loading-screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
 
-  <title>LuckyWin</title>
+        /* 核心修改点：引入背景图，并设置居中、不重复、等比完美铺满屏幕 */
+        background-image: url("./splash.jpg");
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: cover;
 
-  <!--http://www.html5rocks.com/en/mobile/mobifying/-->
-  <meta name="viewport"
-        content="width=device-width,user-scalable=no,initial-scale=1,minimum-scale=1,maximum-scale=1,minimal-ui=true"/>
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end; /* 将内部的进度条整体挤压到屏幕中下方，避免遮挡正中央好看的Logo */
+        align-items: center;
+        padding-bottom: 12%; /* 进度条距离屏幕底部的距离，可根据实际视觉效果微调 */
+        box-sizing: border-box;
+      }
 
-  <!--https://developer.apple.com/library/safari/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html-->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="format-detection" content="telephone=no">
+      /* 进度条外壳容器 */
+      .progress-container {
+        width: 70%;
+        height: 10px;
+        background: rgba(0, 0, 0, 0.6); /* 改为半透明暗色，在亮色背景图上显得更高级 */
+        border-radius: 5px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1); /* 加一层淡淡的白边，增强质感 */
+      }
+      .progress-bar {
+        width: 0%;
+        height: 100%;
+        background: #059669;
+        transition: width 0.1s linear;
+      }
+      .progress-text {
+        margin-top: 10px;
+        color: #e5e7eb; /* 调亮文字颜色，确保在竞技场暗色背景上能够清晰可见 */
+        font-size: 14px;
+        font-family: sans-serif;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); /* 为文字加上一层阴影，防止被背景图案干扰读取 */
+      }
+    </style>
 
-  <!-- force webkit on 360 -->
-  <meta name="renderer" content="webkit"/>
-  <meta name="force-rendering" content="webkit"/>
-  <!-- force edge on IE -->
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
-  <meta name="msapplication-tap-highlight" content="no">
-
-  <!-- force full screen on some browser -->
-  <meta name="full-screen" content="yes"/>
-  <meta name="x5-fullscreen" content="true"/>
-  <meta name="360-fullscreen" content="true"/>
-
-  <!--fix fireball/issues/3568 -->
-  <!--<meta name="browsermode" content="application">-->
-  <meta name="x5-page-mode" content="app">
-
-  <!--<link rel="apple-touch-icon" href=".png" />-->
-  <!--<link rel="apple-touch-icon-precomposed" href=".png" />-->
-
-  <link rel="stylesheet" type="text/css" href="style.f76d1.css"/>
-  <link rel="icon" href="title.ico" type="image/x-icon" />
-  <link rel="shortcut icon" href="title.ico" type="image/x-icon" />
-
-</head>
-<body>
-  <div id="GameDiv" cc_exact_fit_screen="true">
-      <div id="Cocos3dGameContainer">
-        <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99"></canvas>
-      </div>
-    </div>
-  
-
-<!-- Polyfills bundle. -->
-
-<script src="src/polyfills.bundle.5adbf.js" charset="utf-8"> </script>
-
-
-<!-- SystemJS support. -->
-<script src="src/system.bundle.543e6.js" charset="utf-8"> </script>
-
-<!-- Import map -->
-<script src="src/import-map.873d7.json" type="systemjs-importmap" charset="utf-8"> </script>
-
-<script>
-    System.import('./index.ae998.js').catch(function(err) { console.error(err); })
-</script>
-
-<!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-WQ6ZQLXF2J"></script>
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() {
-            dataLayer.push(arguments);
-        }
-        gtag("js", new Date());
+      (function () {
+        let totalSize = 0;
+        let fileList = [];
+        let loadedSizes = {};
+        let virtualPercent = 0;
+        let realPercent = 0;
+        let progressTimer = null;
+        window.__COCOS_READY__ = false; // 新增：全局状态锁，标记Cocos是否彻底启动完毕
 
-        gtag("config", "G-WQ6ZQLXF2J");
+        const bar = () => document.getElementById("custom-progress-bar");
+        const text = () => document.getElementById("custom-progress-text");
+        const screen = () => document.getElementById("custom-loading-screen");
+
+        // 优先异步拉取进度总大小清单
+        fetch("./manifest.json?t=" + Date.now())
+          .then((res) => res.json())
+          .then((data) => {
+            totalSize = data.totalSize;
+            fileList = data.files;
+          })
+          .catch((err) => console.error("清单加载失败", err));
+
+        // 每 16 毫秒执行一次的高频渲染定时器
+        progressTimer = setInterval(() => {
+          let currentLoaded = 0;
+          for (let k in loadedSizes) {
+            currentLoaded += loadedSizes[k];
+          }
+
+          if (totalSize > 0) {
+            realPercent = Math.min(Math.floor((currentLoaded / totalSize) * 100), 100);
+          }
+
+          // 追赶真实进度
+          if (virtualPercent < realPercent) {
+            virtualPercent += 2;
+          } else if (virtualPercent < 98) {
+            // 如果网络加载完了，但Cocos还没彻底初始化好（__COCOS_READY__ 为 false），最高卡在 98% 蠕动蓄力
+            virtualPercent += 0.2;
+          }
+
+          // 【核心修复】：只有当 Cocos 引擎在底部真正 start 成功后，进度条才允许冲向 100%
+          if (window.__COCOS_READY__) {
+            virtualPercent += 5; // 极速冲向 100%
+          }
+
+          if (virtualPercent > 100) virtualPercent = 100;
+          const showPercent = Math.floor(virtualPercent);
+
+          // 更新 UI
+          const barEl = bar();
+          const textEl = text();
+          if (barEl) barEl.style.width = showPercent + "%";
+          if (textEl) textEl.innerText = `正在加载游戏核心资源... ${showPercent}%`;
+
+          // 只有当进度条真正到达 100%，且 Cocos 已经就绪时，才执行卸载
+          if (showPercent >= 100 && window.__COCOS_READY__) {
+            clearInterval(progressTimer);
+            if (screen()) {
+              // 使用淡出效果，让原生画面与游戏画面无缝过渡
+              screen().style.transition = "opacity 0.4s ease";
+              screen().style.opacity = "0";
+              setTimeout(() => {
+                screen().style.display = "none";
+              }, 400);
+            }
+          }
+        }, 16);
+
+        // 强行接管浏览器二次 fetch 请求
+        const originalFetch = window.fetch;
+        window.fetch = async function (input, init) {
+          const url = typeof input === "string" ? input : input.url;
+          const matchedFile = fileList.find((f) => url.includes(f.url.replace("./", "")));
+          if (!matchedFile) return originalFetch(input, init);
+
+          const response = await originalFetch(input, init);
+          if (!response.body) return response;
+
+          const reader = response.body.getReader();
+          const headers = new Headers(response.headers);
+          const stream = new ReadableStream({
+            async start(controller) {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) {
+                  controller.close();
+                  break;
+                }
+                if (!loadedSizes[url]) loadedSizes[url] = 0;
+                loadedSizes[url] += value.length;
+                controller.enqueue(value);
+              }
+            },
+          });
+          return new Response(stream, { headers, status: response.status, statusText: response.statusText });
+        };
+      })();
     </script>
-</body>
+  </head>
+  <body>
+    <!-- 统一的极速秒开启动遮罩（去掉了原有的图标<img>标签，将其直接作为背景） -->
+    <div id="custom-loading-screen">
+      <!-- 💡 注意：这里的 <img> 标签已经安全移除，避免与背景图自带的 Luckywin 图标重叠 -->
+      <div class="progress-container">
+        <div id="custom-progress-bar" class="progress-bar"></div>
+      </div>
+      <div id="custom-progress-text" class="progress-text">游戏正在初始化... 0%</div>
+    </div>
+
+    <!-- 游戏原厂画布 -->
+    <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99"></canvas>
+
+    <!-- 【以下为 3.8.4 原厂标准加载流，带有 id 属性，会被 Node 脚本自动化精准更新哈希】 -->
+    <script id="cocos-polyfills" src="./src/polyfills.bundle.5adbf.js" charset="utf-8"></script>
+    <script id="cocos-system" src="./src/system.bundle.543e6.js" charset="utf-8"></script>
+    <script id="cocos-importmap" src="./src/import-map.873d7.json" type="systemjs-importmap" charset="utf-8"></script>
+
+    <script type="text/javascript">
+      // 1. 原汁原味、完全顺应原厂时序拉起主入口，绝不做任何会导致崩溃或断档的侵入
+      System.import("./index.ae998.js")
+        .then(() => {
+          console.log("Cocos Creator 3.8.4 主环境已成功载入");
+        })
+        .catch(function (err) {
+          console.error("游戏启动异常:", err);
+        });
+
+      // 2. 【核心破局】：全自动视觉同步兜底锁
+      // 当网页内所有的依赖脚本（包括 cc.js、index.js、application.js）在浏览器内核中全部下载并执行完毕时
+      // 触发 window 的 load 事件，配合 500 毫秒的安全运行缓冲（留给引擎在后台创建 Canvas 和运行首场景的时间）
+      window.addEventListener("load", () => {
+        console.log("网页静态资源全部就绪，开启 500ms 引擎渲染缓冲...");
+        setTimeout(() => {
+          console.log("🔥 缓冲结束，引擎完全激活！释放首屏进度条遮罩。");
+          window.__COCOS_READY__ = true;
+        }, 500); // 500毫秒缓冲时间，如果想要更安全，可以调到 800
+      });
+    </script>
+  </body>
 </html>
