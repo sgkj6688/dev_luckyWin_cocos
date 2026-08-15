@@ -173,11 +173,11 @@
     <!-- 【以下为 3.8.4 原厂标准加载流，带有 id 属性，会被 Node 脚本自动化精准更新哈希】 -->
     <script id="cocos-polyfills" src="./src/polyfills.bundle.5adbf.js" charset="utf-8"></script>
     <script id="cocos-system" src="./src/system.bundle.543e6.js" charset="utf-8"></script>
-    <script id="cocos-importmap" src="./src/import-map.873d7.json" type="systemjs-importmap" charset="utf-8"></script>
+    <script id="cocos-importmap" src="./src/import-map.529d2.json" type="systemjs-importmap" charset="utf-8"></script>
 
     <script type="text/javascript">
       // 1. 原汁原味、完全顺应原厂时序拉起主入口，绝不做任何会导致崩溃或断档的侵入
-      System.import("./index.ae998.js")
+      System.import('./index.7bc51.js')
         .then(() => {
           console.log("Cocos Creator 3.8.4 主环境已成功载入");
         })
@@ -185,16 +185,26 @@
           console.error("游戏启动异常:", err);
         });
 
-      // 2. 【核心破局】：全自动视觉同步兜底锁
-      // 当网页内所有的依赖脚本（包括 cc.js、index.js、application.js）在浏览器内核中全部下载并执行完毕时
-      // 触发 window 的 load 事件，配合 500 毫秒的安全运行缓冲（留给引擎在后台创建 Canvas 和运行首场景的时间）
-      window.addEventListener("load", () => {
-        console.log("网页静态资源全部就绪，开启 500ms 引擎渲染缓冲...");
-        setTimeout(() => {
-          console.log("🔥 缓冲结束，引擎完全激活！释放首屏进度条遮罩。");
+      // // 2. 【核心破局】：全自动视觉同步兜底锁
+      // // 当网页内所有的依赖脚本（包括 cc.js、index.js、application.js）在浏览器内核中全部下载并执行完毕时
+      // // 触发 window 的 load 事件，配合 500 毫秒的安全运行缓冲（留给引擎在后台创建 Canvas 和运行首场景的时间）
+      // window.addEventListener("load", () => {
+      //   console.log("网页静态资源全部就绪，开启 500ms 引擎渲染缓冲...");
+      //   setTimeout(() => {
+      //     console.log("🔥 缓冲结束，引擎完全激活！释放首屏进度条遮罩。");
+      //     window.__COCOS_READY__ = true;
+      //   }, 500); // 500毫秒缓冲时间，如果想要更安全，可以调到 800
+      // });
+
+      // 💡【核心修改】：这里不再写 window.addEventListener('load') 的全自动跳转逻辑了！
+      // 进度条会默认卡在 98% 苦苦等待游戏内部的 LoginScene 唤醒。
+      // 为了防止游戏万一崩溃导致玩家永久黑屏卡死，我们只加一个长达 15 秒的“防卡死严重异常兜底”：
+      setTimeout(() => {
+        if (!window.__COCOS_READY__) {
+          console.warn("⏳ 超过 15 秒未收到游戏内 LoginScene 的加载完成信号，触发异常安全兜底释放...");
           window.__COCOS_READY__ = true;
-        }, 500); // 500毫秒缓冲时间，如果想要更安全，可以调到 800
-      });
+        }
+      }, 15000);
     </script>
   </body>
 </html>
