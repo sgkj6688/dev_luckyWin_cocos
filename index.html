@@ -34,11 +34,10 @@
   <link rel="icon" href="title.ico" type="image/x-icon" />
   <link rel="shortcut icon" href="title.ico" type="image/x-icon" />
 
-  <!-- 极速秒开进度条遮罩样式，全屏铺满 Luckywin 竞技场海报 -->
   <style>
     #custom-loading-screen {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background-image: url("./splash.jpg"); 
+      background-image: url(".splashBg.ico"); 
       background-repeat: no-repeat; background-position: center center; background-size: cover;
       z-index: 9999; display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
       padding-bottom: 12%; box-sizing: border-box;
@@ -54,14 +53,12 @@
     }
   </style>
 
-  <!-- 终极黑科技：自适应全自动化 fetch 网络流量流式劫持 -->
   <script>
     (function () {
-      // 核心拦截策略：只要网络请求包含了 cocos-js 文件夹或 settings 配置，立刻抓取计算进度
       const fileFilters = ['cocos-js/', 'src/settings.'];
       
-      let totalSize = 0;        // 运行期动态捕获的总字节数
-      let loadedSizes = {};     // 存储每个网络请求已下载的字节数
+      let totalSize = 0;        // 
+      let loadedSizes = {};     // 
       let virtualPercent = 0;
       let realPercent = 0;
       let progressTimer = null;
@@ -71,14 +68,14 @@
       const text = () => document.getElementById("custom-progress-text");
       const screen = () => document.getElementById("custom-loading-screen");
 
-      // 60帧/秒 视觉平滑渲染核心定时器
+      // 60帧/秒 
       progressTimer = setInterval(() => {
         let currentLoaded = 0;
         for (let k in loadedSizes) {
           currentLoaded += loadedSizes[k];
         }
 
-        // 核心动态追赶算法
+        // 核心动态算法
         if (totalSize > 0) {
           realPercent = Math.min(Math.floor((currentLoaded / totalSize) * 100), 100);
         }
@@ -86,11 +83,11 @@
         if (virtualPercent < realPercent) {
           virtualPercent += 2;
         } else if (virtualPercent < 98) {
-          // 在 LoginScene 没有发来就绪信号前，死死卡在 98% 蓄势待发
+          // 在  没有发来就绪信号前，死死卡在 98% 蓄势待发
           virtualPercent += 0.2;
         }
 
-        // 当 LoginScene 执行成功后，冲向 100% 破壳而出
+        // 当  执行成功后
         if (window.__COCOS_READY__) {
           virtualPercent += 5;
         }
@@ -101,9 +98,9 @@
         // 更新界面
         const barEl = bar(); const textEl = text();
         if (barEl) barEl.style.width = showPercent + "%";
-        if (textEl) textEl.innerText = `正在加载游戏核心资源... ${showPercent}%`;
+        if (textEl) textEl.innerText = `Loading game core resources... ${showPercent}%`;
 
-        // 彻底冲满 100% 且游戏画面完全准备好，淡出隐藏
+        // 淡出隐藏
         if (showPercent >= 100 && window.__COCOS_READY__) {
           clearInterval(progressTimer);
           if (screen()) {
@@ -114,11 +111,11 @@
         }
       }, 16);
 
-      // 动态劫持全局原生 fetch
+      // 全局原生 fetch
       const originalFetch = window.fetch;
       window.fetch = async function (input, init) {
         const url = typeof input === "string" ? input : input.url;
-        // 判断当前网络请求是否命中我们的引擎库或配置文件
+        
         const isBigFile = fileFilters.some((filter) => url.includes(filter));
         
         if (!isBigFile) return originalFetch(input, init);
@@ -126,8 +123,6 @@
         const response = await originalFetch(input, init);
         if (!response.body) return response;
 
-        // 【黑科技关键】：动态从服务器返回的 Headers 响应头中抓取当前文件的真实字节大小 (Content-Length)
-        // 并源源不断地累加进我们的总加载量 totalSize 中
         const contentLength = response.headers.get('content-length');
         if (contentLength) {
             totalSize += parseInt(contentLength, 10);
@@ -142,7 +137,7 @@
               if (done) { controller.close(); break; }
               if (!loadedSizes[url]) loadedSizes[url] = 0;
               
-              // 实时计算该文件当前已下载的字节大小
+              // 
               loadedSizes[url] += value.length;
               controller.enqueue(value);
             }
@@ -151,7 +146,7 @@
         return new Response(stream, { headers, status: response.status, statusText: response.statusText });
       };
 
-      // 15秒防异常卡死强行释放兜底锁
+      // 15秒防异常卡死
       setTimeout(() => {
           if (!window.__COCOS_READY__) {
               console.warn("⏳ 触发异常安全兜底释放...");
@@ -162,7 +157,7 @@
   </script>
 </head>
 <body>
-  <!-- 统一的极速秒开启动遮罩 -->
+  <!--  -->
   <div id="custom-loading-screen">
     <div class="progress-container">
       <div id="custom-progress-bar" class="progress-bar"></div>
@@ -176,7 +171,7 @@
       </div>
     </div>
 
-  <!-- 保留原厂封装层 -->
+  <!--  -->
   
 
 <!-- Polyfills bundle. -->
@@ -191,7 +186,7 @@
 <script src="src/import-map.30e5c.json" type="systemjs-importmap" charset="utf-8"> </script>
 
 <script>
-    System.import('./index.a90c7.js').catch(function(err) { console.error(err); })
+    System.import('./index.8b386.js').catch(function(err) { console.error(err); })
 </script>
 
 
