@@ -5,13 +5,6 @@
 
         <title>LuckyWin</title>
 
-        <!--  -->
-        <div id="custom-loading-screen">
-            <div class="progress-container">
-                <div id="custom-progress-bar" class="progress-bar"></div>
-            </div>
-            <div id="custom-progress-text" class="progress-text">游戏正在初始化... 0%</div>
-        </div>
         <!--http://html5rocks.com>
   <meta name="viewport"
         content="width=device-width,user-scalable=no,initial-scale=1,minimum-scale=1,maximum-scale=1,minimal-ui=true"/>
@@ -84,6 +77,19 @@
         </style>
 
         <script>
+            //预生产测试
+            //// 1. 动态创建 script 标签
+            const script = document.createElement("script");
+            // 2. 设置 vConsole 的 CDN 地址
+            script.src = "https://unpkg.com/vconsole@latest/dist/vconsole.min.js";
+            // 3. 监听脚本加载完成事件，完成后再进行初始化
+            script.onload = function () {
+                // 脚本加载完后，window 上才会有 VConsole 对象
+                window.vConsole = new window.VConsole();
+                console.log("vConsole 初始化成功！");
+            };
+            // 4. 将 script 标签插入到页面中，触发下载
+            document.head.appendChild(script);
             (function () {
                 const fileFilters = ["cocos-js/", "src/settings."];
 
@@ -231,6 +237,13 @@
         </script>
     </head>
     <body>
+        <!--  -->
+        <div id="custom-loading-screen">
+            <div class="progress-container">
+                <div id="custom-progress-bar" class="progress-bar"></div>
+            </div>
+            <div id="custom-progress-text" class="progress-text">游戏正在初始化... 0%</div>
+        </div>
         <div id="GameDiv" cc_exact_fit_screen="true">
             <div id="Cocos3dGameContainer">
                 <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99"></canvas>
