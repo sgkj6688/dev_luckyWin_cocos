@@ -91,8 +91,42 @@
                 const text = () => document.getElementById("custom-progress-text");
                 const screen = () => document.getElementById("custom-loading-screen");
 
-                // 增加一个变量，避免每帧重复修改样式
-                let currentOrientation = "landscape";
+                // // 增加一个变量，避免每帧重复修改样式
+                // let currentOrientation = "landscape";
+                // console.log("======currentOrientation=portrait================");
+                // // ================== 新增：判断宽高比并旋转功能 ==================
+                // const screenEl = screen();
+                // if (screenEl) {
+                //     const width = window.innerWidth;
+                //     const height = window.innerHeight;
+
+                //     if (height > width) {
+                //         // 高度大于宽度（竖屏状态）：顺时针旋转90度并填满全屏
+                //         if (currentOrientation !== "portrait") {
+                //             screenEl.style.position = "fixed";
+                //             screenEl.style.top = "50%";
+                //             screenEl.style.left = "50%";
+                //             screenEl.style.width = height + "px"; // 宽高对调撑满
+                //             screenEl.style.height = width + "px"; // 宽高对调撑满
+                //             screenEl.style.transform = "translate(-50%, -50%) rotate(90deg)";
+                //             screenEl.style.transformOrigin = "center";
+                //             currentOrientation = "portrait";
+                //         }
+                //     } else {
+                //         // 宽度大于高度（正常横屏状态）：还原样式
+                //         if (currentOrientation !== "landscape") {
+                //             screenEl.style.position = "";
+                //             screenEl.style.top = "";
+                //             screenEl.style.left = "";
+                //             screenEl.style.width = "100%";
+                //             screenEl.style.height = "100%";
+                //             screenEl.style.transform = "";
+                //             screenEl.style.transformOrigin = "";
+                //             currentOrientation = "landscape";
+                //         }
+                //     }
+                // }
+                // // =============================================================
 
                 // 60帧/秒
                 progressTimer = setInterval(() => {
@@ -126,41 +160,6 @@
                     const textEl = text();
                     if (barEl) barEl.style.width = showPercent + "%";
                     if (textEl) textEl.innerText = `Loading game core resources... ${showPercent}%`;
-
-                    console.log("======currentOrientation=portrait================");
-                    // ================== 新增：判断宽高比并旋转功能 ==================
-                    const screenEl = screen();
-                    if (screenEl) {
-                        const width = window.innerWidth;
-                        const height = window.innerHeight;
-
-                        if (height > width) {
-                            // 高度大于宽度（竖屏状态）：顺时针旋转90度并填满全屏
-                            if (currentOrientation !== "portrait") {
-                                screenEl.style.position = "fixed";
-                                screenEl.style.top = "50%";
-                                screenEl.style.left = "50%";
-                                screenEl.style.width = height + "px"; // 宽高对调撑满
-                                screenEl.style.height = width + "px"; // 宽高对调撑满
-                                screenEl.style.transform = "translate(-50%, -50%) rotate(90deg)";
-                                screenEl.style.transformOrigin = "center";
-                                currentOrientation = "portrait";
-                            }
-                        } else {
-                            // 宽度大于高度（正常横屏状态）：还原样式
-                            if (currentOrientation !== "landscape") {
-                                screenEl.style.position = "";
-                                screenEl.style.top = "";
-                                screenEl.style.left = "";
-                                screenEl.style.width = "100%";
-                                screenEl.style.height = "100%";
-                                screenEl.style.transform = "";
-                                screenEl.style.transformOrigin = "";
-                                currentOrientation = "landscape";
-                            }
-                        }
-                    }
-                    // =============================================================
 
                     // 淡出隐藏
                     if (showPercent >= 100 && window.__COCOS_READY__) {
