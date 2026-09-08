@@ -5,6 +5,13 @@
 
         <title>LuckyWin</title>
 
+        <!--  -->
+        <div id="custom-loading-screen">
+            <div class="progress-container">
+                <div id="custom-progress-bar" class="progress-bar"></div>
+            </div>
+            <div id="custom-progress-text" class="progress-text">游戏正在初始化... 0%</div>
+        </div>
         <!--http://html5rocks.com>
   <meta name="viewport"
         content="width=device-width,user-scalable=no,initial-scale=1,minimum-scale=1,maximum-scale=1,minimal-ui=true"/>
@@ -91,42 +98,42 @@
                 const text = () => document.getElementById("custom-progress-text");
                 const screen = () => document.getElementById("custom-loading-screen");
 
-                // // 增加一个变量，避免每帧重复修改样式
-                // let currentOrientation = "landscape";
-                // console.log("======currentOrientation=portrait================");
-                // // ================== 新增：判断宽高比并旋转功能 ==================
-                // const screenEl = screen();
-                // if (screenEl) {
-                //     const width = window.innerWidth;
-                //     const height = window.innerHeight;
+                // 增加一个变量，避免每帧重复修改样式
+                let currentOrientation = "landscape";
+                console.log("======currentOrientation=portrait================");
+                // ================== 新增：判断宽高比并旋转功能 ==================
+                const screenEl = screen();
+                if (screenEl) {
+                    const width = window.innerWidth;
+                    const height = window.innerHeight;
 
-                //     if (height > width) {
-                //         // 高度大于宽度（竖屏状态）：顺时针旋转90度并填满全屏
-                //         if (currentOrientation !== "portrait") {
-                //             screenEl.style.position = "fixed";
-                //             screenEl.style.top = "50%";
-                //             screenEl.style.left = "50%";
-                //             screenEl.style.width = height + "px"; // 宽高对调撑满
-                //             screenEl.style.height = width + "px"; // 宽高对调撑满
-                //             screenEl.style.transform = "translate(-50%, -50%) rotate(90deg)";
-                //             screenEl.style.transformOrigin = "center";
-                //             currentOrientation = "portrait";
-                //         }
-                //     } else {
-                //         // 宽度大于高度（正常横屏状态）：还原样式
-                //         if (currentOrientation !== "landscape") {
-                //             screenEl.style.position = "";
-                //             screenEl.style.top = "";
-                //             screenEl.style.left = "";
-                //             screenEl.style.width = "100%";
-                //             screenEl.style.height = "100%";
-                //             screenEl.style.transform = "";
-                //             screenEl.style.transformOrigin = "";
-                //             currentOrientation = "landscape";
-                //         }
-                //     }
-                // }
-                // // =============================================================
+                    if (height > width) {
+                        // 高度大于宽度（竖屏状态）：顺时针旋转90度并填满全屏
+                        if (currentOrientation !== "portrait") {
+                            screenEl.style.position = "fixed";
+                            screenEl.style.top = "50%";
+                            screenEl.style.left = "50%";
+                            screenEl.style.width = height + "px"; // 宽高对调撑满
+                            screenEl.style.height = width + "px"; // 宽高对调撑满
+                            screenEl.style.transform = "translate(-50%, -50%) rotate(90deg)";
+                            screenEl.style.transformOrigin = "center";
+                            currentOrientation = "portrait";
+                        }
+                    } else {
+                        // 宽度大于高度（正常横屏状态）：还原样式
+                        if (currentOrientation !== "landscape") {
+                            screenEl.style.position = "";
+                            screenEl.style.top = "";
+                            screenEl.style.left = "";
+                            screenEl.style.width = "100%";
+                            screenEl.style.height = "100%";
+                            screenEl.style.transform = "";
+                            screenEl.style.transformOrigin = "";
+                            currentOrientation = "landscape";
+                        }
+                    }
+                }
+                // =============================================================
 
                 // 60帧/秒
                 progressTimer = setInterval(() => {
@@ -226,14 +233,6 @@
         <div id="GameDiv" cc_exact_fit_screen="true">
             <div id="Cocos3dGameContainer">
                 <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99"></canvas>
-
-                <!--  -->
-                <div id="custom-loading-screen">
-                    <div class="progress-container">
-                        <div id="custom-progress-bar" class="progress-bar"></div>
-                    </div>
-                    <div id="custom-progress-text" class="progress-text">游戏正在初始化... 0%</div>
-                </div>
             </div>
         </div>
 
