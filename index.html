@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <meta charset="utf-8">
+  <head>
+    <meta charset="utf-8" />
 
-  <title>LuckyWin</title>
+    <title>LuckyWin</title>
 
-  <!--http://html5rocks.com>
+    <!--http://html5rocks.com>
   <meta name="viewport"
         content="width=device-width,user-scalable=no,initial-scale=1,minimum-scale=1,maximum-scale=1,minimal-ui=true"/>
 
@@ -15,233 +15,260 @@
   <meta name="format-detection" content="telephone=no">
 
   <!-- force webkit on 360 -->
-  <meta name="renderer" content="webkit"/>
-  <meta name="force-rendering" content="webkit"/>
-  <!-- force edge on IE -->
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
-  <meta name="msapplication-tap-highlight" content="no">
+    <meta name="renderer" content="webkit" />
+    <meta name="force-rendering" content="webkit" />
+    <!-- force edge on IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="msapplication-tap-highlight" content="no" />
 
-  <!-- force full screen on some browser -->
-  <meta name="full-screen" content="yes"/>
-  <meta name="x5-fullscreen" content="true"/>
-  <meta name="360-fullscreen" content="true"/>
+    <!-- force full screen on some browser -->
+    <meta name="full-screen" content="yes" />
+    <meta name="x5-fullscreen" content="true" />
+    <meta name="360-fullscreen" content="true" />
 
-  <!--fix fireball/issues/3568 -->
-  <!--<meta name="browsermode" content="application">-->
-  <meta name="x5-page-mode" content="app">
+    <!--fix fireball/issues/3568 -->
+    <!--<meta name="browsermode" content="application">-->
+    <meta name="x5-page-mode" content="app" />
 
-  <link rel="stylesheet" type="text/css" href="style.f76d1.css"/>
-  <link rel="icon" href="title.ico" type="image/x-icon" />
-  <link rel="shortcut icon" href="title.ico" type="image/x-icon" />
+    <link rel="stylesheet" type="text/css" href="style.f76d1.css" />
+    <link rel="icon" href="title.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="title.ico" type="image/x-icon" />
 
-  <style>
-    #custom-loading-screen {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background-image: url("./splashBg.ico"); 
-      background-repeat: no-repeat; background-position: center center; background-size: cover;
-      z-index: 9999; display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
-      padding-bottom: 12%; box-sizing: border-box;
-    }
-    .progress-container {
-      width: 70%; height: 10px; background: rgba(0, 0, 0, 0.6); border-radius: 5px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .progress-bar {
-      width: 0%; height: 100%; background: #059669; transition: width 0.1s linear;
-    }
-    .progress-text {
-      margin-top: 10px; color: #e5e7eb; font-size: 14px; font-family: sans-serif; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-    }
-  </style>
+    <style>
+      #custom-loading-screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("./splashBg.ico");
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: cover;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: center;
+        padding-bottom: 12%;
+        box-sizing: border-box;
+      }
+      .progress-container {
+        width: 70%;
+        height: 10px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 5px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .progress-bar {
+        width: 0%;
+        height: 100%;
+        background: #059669;
+        transition: width 0.1s linear;
+      }
+      .progress-text {
+        margin-top: 10px;
+        color: #e5e7eb;
+        font-size: 14px;
+        font-family: sans-serif;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      }
+    </style>
+    <script src="./vconsole.min.js"></script>
+    <script type="text/javascript">
+      // open web debugger console
+      window.VConsole && (window.vConsole = new VConsole());
+    </script>
 
-  <script>
-    (function () {
-      const fileFilters = ['cocos-js/', 'src/settings.'];
-      
-      let totalSize = 0;        // 
-      let loadedSizes = {};     // 
-      let virtualPercent = 0;
-      let realPercent = 0;
-      let progressTimer = null;
-      window.__COCOS_READY__ = false; 
+    <script>
+      (function () {
+        const fileFilters = ["cocos-js/", "src/settings."];
 
-      const bar = () => document.getElementById("custom-progress-bar");
-      const text = () => document.getElementById("custom-progress-text");
-      const screen = () => document.getElementById("custom-loading-screen");
+        let totalSize = 0; //
+        let loadedSizes = {}; //
+        let virtualPercent = 0;
+        let realPercent = 0;
+        let progressTimer = null;
+        window.__COCOS_READY__ = false;
 
-      // 增加一个变量，避免每帧重复修改样式
-      let currentOrientation = "landscape";
+        const bar = () => document.getElementById("custom-progress-bar");
+        const text = () => document.getElementById("custom-progress-text");
+        const screen = () => document.getElementById("custom-loading-screen");
 
-      // 60帧/秒 
-      progressTimer = setInterval(() => {
-        let currentLoaded = 0;
-        for (let k in loadedSizes) {
-          currentLoaded += loadedSizes[k];
-        }
+        // 增加一个变量，避免每帧重复修改样式
+        let currentOrientation = "landscape";
 
-        // 核心动态算法
-        if (totalSize > 0) {
-          realPercent = Math.min(Math.floor((currentLoaded / totalSize) * 100), 100);
-        }
-
-        if (virtualPercent < realPercent) {
-          virtualPercent += 2;
-        } else if (virtualPercent < 98) {
-          // 在  没有发来就绪信号前，死死卡在 98% 蓄势待发
-          virtualPercent += 0.2;
-        }
-
-        // 当  执行成功后
-        if (window.__COCOS_READY__) {
-          virtualPercent += 5;
-        }
-
-        if (virtualPercent > 100) virtualPercent = 100;
-        const showPercent = Math.floor(virtualPercent);
-
-        // 更新界面
-        const barEl = bar(); const textEl = text();
-        if (barEl) barEl.style.width = showPercent + "%";
-        if (textEl) textEl.innerText = `Loading game core resources... ${showPercent}%`;
-
-        // ================== 新增：判断宽高比并旋转功能 ==================
-        const screenEl = screen();
-                    if (screenEl) {
-                        const width = window.innerWidth;
-                        const height = window.innerHeight;
-
-                        if (height > width) {
-                            // 高度大于宽度（竖屏状态）：顺时针旋转90度并填满全屏
-                            if (currentOrientation !== "portrait") {
-                                screenEl.style.position = "fixed";
-                                screenEl.style.top = "50%";
-                                screenEl.style.left = "50%";
-                                screenEl.style.width = height + "px"; // 宽高对调撑满
-                                screenEl.style.height = width + "px"; // 宽高对调撑满
-                                screenEl.style.transform = "translate(-50%, -50%) rotate(90deg)";
-                                screenEl.style.transformOrigin = "center";
-                                currentOrientation = "portrait";
-                            }
-                        } else {
-                            // 宽度大于高度（正常横屏状态）：还原样式
-                            if (currentOrientation !== "landscape") {
-                                screenEl.style.position = "";
-                                screenEl.style.top = "";
-                                screenEl.style.left = "";
-                                screenEl.style.width = "100%";
-                                screenEl.style.height = "100%";
-                                screenEl.style.transform = "";
-                                screenEl.style.transformOrigin = "";
-                                currentOrientation = "landscape";
-                            }
-                        }
-                    }
-        // =============================================================
-
-        // 淡出隐藏
-        if (showPercent >= 100 && window.__COCOS_READY__) {
-          clearInterval(progressTimer);
-          if (screen()) {
-            screen().style.transition = "opacity 0.4s ease";
-            screen().style.opacity = "0";
-            setTimeout(() => { screen().style.display = "none"; }, 400);
+        // 60帧/秒
+        progressTimer = setInterval(() => {
+          let currentLoaded = 0;
+          for (let k in loadedSizes) {
+            currentLoaded += loadedSizes[k];
           }
-        }
-      }, 16);
 
-      // 全局原生 fetch
-      const originalFetch = window.fetch;
-      window.fetch = async function (input, init) {
-        const url = typeof input === "string" ? input : input.url;
-        
-        const isBigFile = fileFilters.some((filter) => url.includes(filter));
-        
-        if (!isBigFile) return originalFetch(input, init);
+          // 核心动态算法
+          if (totalSize > 0) {
+            realPercent = Math.min(Math.floor((currentLoaded / totalSize) * 100), 100);
+          }
 
-        const response = await originalFetch(input, init);
-        if (!response.body) return response;
+          if (virtualPercent < realPercent) {
+            virtualPercent += 2;
+          } else if (virtualPercent < 98) {
+            // 在  没有发来就绪信号前，死死卡在 98% 蓄势待发
+            virtualPercent += 0.2;
+          }
 
-        const contentLength = response.headers.get('content-length');
-        if (contentLength) {
-            totalSize += parseInt(contentLength, 10);
-        }
+          // 当  执行成功后
+          if (window.__COCOS_READY__) {
+            virtualPercent += 5;
+          }
 
-        const reader = response.body.getReader();
-        const headers = new Headers(response.headers);
-        const stream = new ReadableStream({
-          async start(controller) {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) { controller.close(); break; }
-              if (!loadedSizes[url]) loadedSizes[url] = 0;
-              
-              // 
-              loadedSizes[url] += value.length;
-              controller.enqueue(value);
+          if (virtualPercent > 100) virtualPercent = 100;
+          const showPercent = Math.floor(virtualPercent);
+
+          // 更新界面
+          const barEl = bar();
+          const textEl = text();
+          if (barEl) barEl.style.width = showPercent + "%";
+          if (textEl) textEl.innerText = `Loading game core resources... ${showPercent}%`;
+
+          // ================== 新增：判断宽高比并旋转功能 ==================
+          const screenEl = screen();
+          if (screenEl) {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            if (height > width) {
+              // 高度大于宽度（竖屏状态）：顺时针旋转90度并填满全屏
+              if (currentOrientation !== "portrait") {
+                screenEl.style.position = "fixed";
+                screenEl.style.top = "50%";
+                screenEl.style.left = "50%";
+                screenEl.style.width = height + "px"; // 宽高对调撑满
+                screenEl.style.height = width + "px"; // 宽高对调撑满
+                screenEl.style.transform = "translate(-50%, -50%) rotate(90deg)";
+                screenEl.style.transformOrigin = "center";
+                currentOrientation = "portrait";
+              }
+            } else {
+              // 宽度大于高度（正常横屏状态）：还原样式
+              if (currentOrientation !== "landscape") {
+                screenEl.style.position = "";
+                screenEl.style.top = "";
+                screenEl.style.left = "";
+                screenEl.style.width = "100%";
+                screenEl.style.height = "100%";
+                screenEl.style.transform = "";
+                screenEl.style.transformOrigin = "";
+                currentOrientation = "landscape";
+              }
             }
-          },
-        });
-        return new Response(stream, { headers, status: response.status, statusText: response.statusText });
-      };
-
-      // 15秒防异常卡死
-      setTimeout(() => {
-          if (!window.__COCOS_READY__) {
-              console.warn("⏳ 触发异常安全兜底释放...");
-              window.__COCOS_READY__ = true;
           }
-      }, 15000); 
-    })();
-  </script>
-</head>
-<body>
-  <!--  -->
-  <div id="custom-loading-screen">
-    <div class="progress-container">
-      <div id="custom-progress-bar" class="progress-bar"></div>
-    </div>
-    <div id="custom-progress-text" class="progress-text">游戏正在初始化... 0%</div>
-  </div>
+          // =============================================================
 
-  <div id="GameDiv" cc_exact_fit_screen="true">
+          // 淡出隐藏
+          if (showPercent >= 100 && window.__COCOS_READY__) {
+            clearInterval(progressTimer);
+            if (screen()) {
+              screen().style.transition = "opacity 0.4s ease";
+              screen().style.opacity = "0";
+              setTimeout(() => {
+                screen().style.display = "none";
+              }, 400);
+            }
+          }
+        }, 16);
+
+        // 全局原生 fetch
+        const originalFetch = window.fetch;
+        window.fetch = async function (input, init) {
+          const url = typeof input === "string" ? input : input.url;
+
+          const isBigFile = fileFilters.some((filter) => url.includes(filter));
+
+          if (!isBigFile) return originalFetch(input, init);
+
+          const response = await originalFetch(input, init);
+          if (!response.body) return response;
+
+          const contentLength = response.headers.get("content-length");
+          if (contentLength) {
+            totalSize += parseInt(contentLength, 10);
+          }
+
+          const reader = response.body.getReader();
+          const headers = new Headers(response.headers);
+          const stream = new ReadableStream({
+            async start(controller) {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) {
+                  controller.close();
+                  break;
+                }
+                if (!loadedSizes[url]) loadedSizes[url] = 0;
+
+                //
+                loadedSizes[url] += value.length;
+                controller.enqueue(value);
+              }
+            },
+          });
+          return new Response(stream, { headers, status: response.status, statusText: response.statusText });
+        };
+
+        // 15秒防异常卡死
+        setTimeout(() => {
+          if (!window.__COCOS_READY__) {
+            console.warn("⏳ 触发异常安全兜底释放...");
+            window.__COCOS_READY__ = true;
+          }
+        }, 15000);
+      })();
+    </script>
+  </head>
+  <body>
+    <!--  -->
+    <div id="custom-loading-screen">
+      <div class="progress-container">
+        <div id="custom-progress-bar" class="progress-bar"></div>
+      </div>
+      <div id="custom-progress-text" class="progress-text">游戏正在初始化... 0%</div>
+    </div>
+
+    <div id="GameDiv" cc_exact_fit_screen="true">
       <div id="Cocos3dGameContainer">
         <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99"></canvas>
       </div>
     </div>
 
-  <!--  -->
-  
-<script src="./vconsole.min.js"></script>
-<script type="text/javascript">
-    // open web debugger console
-    window.VConsole && (window.vConsole = new VConsole());
-</script>
+    <!--  -->
 
+    <!-- Polyfills bundle. -->
 
-<!-- Polyfills bundle. -->
+    <script src="src/polyfills.bundle.5adbf.js" charset="utf-8"></script>
 
-<script src="src/polyfills.bundle.5adbf.js" charset="utf-8"> </script>
+    <!-- SystemJS support. -->
+    <script src="src/system.bundle.543e6.js" charset="utf-8"></script>
 
+    <!-- Import map -->
+    <script src="src/import-map.30e5c.json" type="systemjs-importmap" charset="utf-8"></script>
 
-<!-- SystemJS support. -->
-<script src="src/system.bundle.543e6.js" charset="utf-8"> </script>
+    <script>
+      System.import("./index.3e7e5.js").catch(function (err) {
+        console.error(err);
+      });
+    </script>
 
-<!-- Import map -->
-<script src="src/import-map.30e5c.json" type="systemjs-importmap" charset="utf-8"> </script>
-
-<script>
-    System.import('./index.3e7e5.js').catch(function(err) { console.error(err); })
-</script>
-
-
-<!-- Google tag (gtag.js) -->
+    <!-- Google tag (gtag.js) -->
     <script async src="https://googletagmanager.com"></script>
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() {
-            dataLayer.push(arguments);
-        }
-        gtag("js", new Date());
-        gtag("config", "G-WQ6ZQLXF2J");
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-WQ6ZQLXF2J");
     </script>
-</body>
+  </body>
 </html>
