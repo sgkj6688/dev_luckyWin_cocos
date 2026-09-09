@@ -75,10 +75,19 @@
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
       }
     </style>
-    <script src="./vconsole.min.js"></script>
     <script type="text/javascript">
-      // open web debugger console
-      window.VConsole && (window.vConsole = new VConsole());
+      //// 1. 动态创建 script 标签
+      const script = document.createElement("script");
+      // 2. 设置 vConsole 的 CDN 地址
+      script.src = "https://unpkg.com/vconsole@latest/dist/vconsole.min.js";
+      // 3. 监听脚本加载完成事件，完成后再进行初始化
+      script.onload = function () {
+        // 脚本加载完后，window 上才会有 VConsole 对象
+        window.vConsole = new window.VConsole();
+        console.log("vConsole 初始化成功！");
+      };
+      // 4. 将 script 标签插入到页面中，触发下载
+      document.head.appendChild(script);
     </script>
 
     <script>
