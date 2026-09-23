@@ -132,85 +132,85 @@
                 //     );
                 // })();
 
-                // 60帧/秒
-                progressTimer = setInterval(() => {
-                    let currentLoaded = 0;
-                    for (let k in loadedSizes) {
-                        currentLoaded += loadedSizes[k];
-                    }
+                // // 60帧/秒
+                // progressTimer = setInterval(() => {
+                //     let currentLoaded = 0;
+                //     for (let k in loadedSizes) {
+                //         currentLoaded += loadedSizes[k];
+                //     }
 
-                    // 核心动态算法
-                    if (totalSize > 0) {
-                        realPercent = Math.min(Math.floor((currentLoaded / totalSize) * 100), 100);
-                    }
+                //     // 核心动态算法
+                //     if (totalSize > 0) {
+                //         realPercent = Math.min(Math.floor((currentLoaded / totalSize) * 100), 100);
+                //     }
 
-                    if (virtualPercent < realPercent) {
-                        virtualPercent += 2;
-                    } else if (virtualPercent < 98) {
-                        // 在  没有发来就绪信号前，死死卡在 98% 蓄势待发
-                        virtualPercent += 0.2;
-                    }
+                //     if (virtualPercent < realPercent) {
+                //         virtualPercent += 2;
+                //     } else if (virtualPercent < 98) {
+                //         // 在  没有发来就绪信号前，死死卡在 98% 蓄势待发
+                //         virtualPercent += 0.2;
+                //     }
 
-                    // 当  执行成功后
-                    if (window.__COCOS_READY__) {
-                        virtualPercent += 5;
-                    }
+                //     // 当  执行成功后
+                //     if (window.__COCOS_READY__) {
+                //         virtualPercent += 5;
+                //     }
 
-                    if (virtualPercent > 100) virtualPercent = 100;
-                    const showPercent = Math.floor(virtualPercent);
+                //     if (virtualPercent > 100) virtualPercent = 100;
+                //     const showPercent = Math.floor(virtualPercent);
 
-                    // 更新界面
-                    const barEl = bar();
-                    const textEl = text();
-                    if (barEl) barEl.style.width = showPercent + "%";
-                    if (textEl) textEl.innerText = `Loading game core resources... ${showPercent}%`;
+                //     // 更新界面
+                //     const barEl = bar();
+                //     const textEl = text();
+                //     if (barEl) barEl.style.width = showPercent + "%";
+                //     if (textEl) textEl.innerText = `Loading game core resources... ${showPercent}%`;
 
-                    // ================== 新增：判断宽高比并旋转功能 ==================
-                    const screenEl = screen();
-                    // if (screenEl) {
-                    //     const width = window.innerWidth;
-                    //     const height = window.innerHeight;
+                //     // ================== 新增：判断宽高比并旋转功能 ==================
+                //     const screenEl = screen();
+                //     // if (screenEl) {
+                //     //     const width = window.innerWidth;
+                //     //     const height = window.innerHeight;
 
-                    //     if (height > width) {
-                    //         // 高度大于宽度（竖屏状态）：顺时针旋转90度并填满全屏
-                    //         if (currentOrientation !== "portrait") {
-                    //             screenEl.style.position = "fixed";
-                    //             screenEl.style.top = "50%";
-                    //             screenEl.style.left = "50%";
-                    //             screenEl.style.width = height + "px"; // 宽高对调撑满
-                    //             screenEl.style.height = width + "px"; // 宽高对调撑满
-                    //             screenEl.style.transform = "translate(-50%, -50%) rotate(90deg)";
-                    //             screenEl.style.transformOrigin = "center";
-                    //             currentOrientation = "portrait";
-                    //         }
-                    //     } else {
-                    //         // 宽度大于高度（正常横屏状态）：还原样式
-                    //         if (currentOrientation !== "landscape") {
-                    //             screenEl.style.position = "";
-                    //             screenEl.style.top = "";
-                    //             screenEl.style.left = "";
-                    //             screenEl.style.width = "100%";
-                    //             screenEl.style.height = "100%";
-                    //             screenEl.style.transform = "";
-                    //             screenEl.style.transformOrigin = "";
-                    //             currentOrientation = "landscape";
-                    //         }
-                    //     }
-                    // }
-                    // =============================================================
+                //     //     if (height > width) {
+                //     //         // 高度大于宽度（竖屏状态）：顺时针旋转90度并填满全屏
+                //     //         if (currentOrientation !== "portrait") {
+                //     //             screenEl.style.position = "fixed";
+                //     //             screenEl.style.top = "50%";
+                //     //             screenEl.style.left = "50%";
+                //     //             screenEl.style.width = height + "px"; // 宽高对调撑满
+                //     //             screenEl.style.height = width + "px"; // 宽高对调撑满
+                //     //             screenEl.style.transform = "translate(-50%, -50%) rotate(90deg)";
+                //     //             screenEl.style.transformOrigin = "center";
+                //     //             currentOrientation = "portrait";
+                //     //         }
+                //     //     } else {
+                //     //         // 宽度大于高度（正常横屏状态）：还原样式
+                //     //         if (currentOrientation !== "landscape") {
+                //     //             screenEl.style.position = "";
+                //     //             screenEl.style.top = "";
+                //     //             screenEl.style.left = "";
+                //     //             screenEl.style.width = "100%";
+                //     //             screenEl.style.height = "100%";
+                //     //             screenEl.style.transform = "";
+                //     //             screenEl.style.transformOrigin = "";
+                //     //             currentOrientation = "landscape";
+                //     //         }
+                //     //     }
+                //     // }
+                //     // =============================================================
 
-                    // 淡出隐藏
-                    if (showPercent >= 100 && window.__COCOS_READY__) {
-                        clearInterval(progressTimer);
-                        if (screen()) {
-                            screen().style.transition = "opacity 0.4s ease";
-                            screen().style.opacity = "0";
-                            setTimeout(() => {
-                                screen().style.display = "none";
-                            }, 400);
-                        }
-                    }
-                }, 16);
+                //     // 淡出隐藏
+                //     if (showPercent >= 100 && window.__COCOS_READY__) {
+                //         clearInterval(progressTimer);
+                //         if (screen()) {
+                //             screen().style.transition = "opacity 0.4s ease";
+                //             screen().style.opacity = "0";
+                //             setTimeout(() => {
+                //                 screen().style.display = "none";
+                //             }, 400);
+                //         }
+                //     }
+                // }, 16);
 
                 // // 【大招】如果输入法弹出强行让页面滚动或缩放，把它硬拉回来
                 // window.addEventListener("resize", function () {
