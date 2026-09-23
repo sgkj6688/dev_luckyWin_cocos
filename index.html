@@ -167,36 +167,36 @@
 
                     // ================== 新增：判断宽高比并旋转功能 ==================
                     const screenEl = screen();
-                    if (screenEl) {
-                        const width = window.innerWidth;
-                        const height = window.innerHeight;
+                    // if (screenEl) {
+                    //     const width = window.innerWidth;
+                    //     const height = window.innerHeight;
 
-                        if (height > width) {
-                            // 高度大于宽度（竖屏状态）：顺时针旋转90度并填满全屏
-                            if (currentOrientation !== "portrait") {
-                                screenEl.style.position = "fixed";
-                                screenEl.style.top = "50%";
-                                screenEl.style.left = "50%";
-                                screenEl.style.width = height + "px"; // 宽高对调撑满
-                                screenEl.style.height = width + "px"; // 宽高对调撑满
-                                screenEl.style.transform = "translate(-50%, -50%) rotate(90deg)";
-                                screenEl.style.transformOrigin = "center";
-                                currentOrientation = "portrait";
-                            }
-                        } else {
-                            // 宽度大于高度（正常横屏状态）：还原样式
-                            if (currentOrientation !== "landscape") {
-                                screenEl.style.position = "";
-                                screenEl.style.top = "";
-                                screenEl.style.left = "";
-                                screenEl.style.width = "100%";
-                                screenEl.style.height = "100%";
-                                screenEl.style.transform = "";
-                                screenEl.style.transformOrigin = "";
-                                currentOrientation = "landscape";
-                            }
-                        }
-                    }
+                    //     if (height > width) {
+                    //         // 高度大于宽度（竖屏状态）：顺时针旋转90度并填满全屏
+                    //         if (currentOrientation !== "portrait") {
+                    //             screenEl.style.position = "fixed";
+                    //             screenEl.style.top = "50%";
+                    //             screenEl.style.left = "50%";
+                    //             screenEl.style.width = height + "px"; // 宽高对调撑满
+                    //             screenEl.style.height = width + "px"; // 宽高对调撑满
+                    //             screenEl.style.transform = "translate(-50%, -50%) rotate(90deg)";
+                    //             screenEl.style.transformOrigin = "center";
+                    //             currentOrientation = "portrait";
+                    //         }
+                    //     } else {
+                    //         // 宽度大于高度（正常横屏状态）：还原样式
+                    //         if (currentOrientation !== "landscape") {
+                    //             screenEl.style.position = "";
+                    //             screenEl.style.top = "";
+                    //             screenEl.style.left = "";
+                    //             screenEl.style.width = "100%";
+                    //             screenEl.style.height = "100%";
+                    //             screenEl.style.transform = "";
+                    //             screenEl.style.transformOrigin = "";
+                    //             currentOrientation = "landscape";
+                    //         }
+                    //     }
+                    // }
                     // =============================================================
 
                     // 淡出隐藏
@@ -212,22 +212,22 @@
                     }
                 }, 16);
 
-                // 【大招】如果输入法弹出强行让页面滚动或缩放，把它硬拉回来
-                window.addEventListener("resize", function () {
-                    // 当输入法引发 resize 时，强行将加载页恢复成最初拿到的 px 宽高
-                    const width = window.innerWidth;
-                    const height = window.innerHeight;
-                    screenEl.style.width = width + "px";
-                    screenEl.style.height = width + "px";
-                    window.scrollTo(0, 0); // 强行把被输入法顶上去的页面拉回原点
-                });
+                // // 【大招】如果输入法弹出强行让页面滚动或缩放，把它硬拉回来
+                // window.addEventListener("resize", function () {
+                //     // 当输入法引发 resize 时，强行将加载页恢复成最初拿到的 px 宽高
+                //     const width = window.innerWidth;
+                //     const height = window.innerHeight;
+                //     screenEl.style.width = width + "px";
+                //     screenEl.style.height = width + "px";
+                //     window.scrollTo(0, 0); // 强行把被输入法顶上去的页面拉回原点
+                // });
 
-                window.addEventListener("scroll", function () {
-                    // 严禁加载期间任何形式的页面滚位
-                    if (document.body.scrollTop !== 0 || document.documentElement.scrollTop !== 0) {
-                        window.scrollTo(0, 0);
-                    }
-                });
+                // window.addEventListener("scroll", function () {
+                //     // 严禁加载期间任何形式的页面滚位
+                //     if (document.body.scrollTop !== 0 || document.documentElement.scrollTop !== 0) {
+                //         window.scrollTo(0, 0);
+                //     }
+                // });
 
                 // 全局原生 fetch
                 const originalFetch = window.fetch;
@@ -282,12 +282,12 @@
             <div id="Cocos3dGameContainer">
                 <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99"></canvas>
                 <!--  -->
-                <!-- <div id="custom-loading-screen">
+                <div id="custom-loading-screen">
                     <div class="progress-container">
                         <div id="custom-progress-bar" class="progress-bar"></div>
                     </div>
                     <div id="custom-progress-text" class="progress-text">游戏正在初始化... 0%</div>
-                </div> -->
+                </div>
             </div>
         </div>
 
