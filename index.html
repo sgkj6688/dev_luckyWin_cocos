@@ -34,7 +34,7 @@
         <link rel="icon" href="title.ico" type="image/x-icon" />
         <link rel="shortcut icon" href="title.ico" type="image/x-icon" />
 
-        <style>
+        <!-- <style>
             #custom-loading-screen {
                 position: absolute;
                 top: 0;
@@ -74,7 +74,7 @@
                 font-family: sans-serif;
                 text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
             }
-        </style>
+        </style> -->
 
         <script>
             (function () {
@@ -94,43 +94,43 @@
                 // 增加一个变量，避免每帧重复修改样式
                 let currentOrientation = "landscape";
 
-                (function () {
-                    // 1. 禁用双指缩放手势
-                    document.addEventListener(
-                        "touchstart",
-                        function (event) {
-                            if (event.touches.length > 1) {
-                                event.preventDefault(); // 阻止多指触控的默认缩放行为
-                            }
-                        },
-                        { passive: false },
-                    );
+                // (function () {
+                //     // 1. 禁用双指缩放手势
+                //     document.addEventListener(
+                //         "touchstart",
+                //         function (event) {
+                //             if (event.touches.length > 1) {
+                //                 event.preventDefault(); // 阻止多指触控的默认缩放行为
+                //             }
+                //         },
+                //         { passive: false },
+                //     );
 
-                    // 2. 禁用双击缩放（iOS 经典的连续点击屏幕放大）
-                    var lastTouchEnd = 0;
-                    document.addEventListener(
-                        "touchend",
-                        function (event) {
-                            var now = new Date().getTime();
-                            if (now - lastTouchEnd <= 300) {
-                                event.preventDefault(); // 阻止双击行为
-                            }
-                            lastTouchEnd = now;
-                        },
-                        false,
-                    );
+                //     // 2. 禁用双击缩放（iOS 经典的连续点击屏幕放大）
+                //     var lastTouchEnd = 0;
+                //     document.addEventListener(
+                //         "touchend",
+                //         function (event) {
+                //             var now = new Date().getTime();
+                //             if (now - lastTouchEnd <= 300) {
+                //                 event.preventDefault(); // 阻止双击行为
+                //             }
+                //             lastTouchEnd = now;
+                //         },
+                //         false,
+                //     );
 
-                    // 3. 拦截鼠标滚轮缩放（防 PC 调试或部分支持滚轮的平板设备）
-                    document.addEventListener(
-                        "wheel",
-                        function (event) {
-                            if (event.ctrlKey) {
-                                event.preventDefault();
-                            }
-                        },
-                        { passive: false },
-                    );
-                })();
+                //     // 3. 拦截鼠标滚轮缩放（防 PC 调试或部分支持滚轮的平板设备）
+                //     document.addEventListener(
+                //         "wheel",
+                //         function (event) {
+                //             if (event.ctrlKey) {
+                //                 event.preventDefault();
+                //             }
+                //         },
+                //         { passive: false },
+                //     );
+                // })();
 
                 // 60帧/秒
                 progressTimer = setInterval(() => {
@@ -282,12 +282,12 @@
             <div id="Cocos3dGameContainer">
                 <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99"></canvas>
                 <!--  -->
-                <div id="custom-loading-screen">
+                <!-- <div id="custom-loading-screen">
                     <div class="progress-container">
                         <div id="custom-progress-bar" class="progress-bar"></div>
                     </div>
                     <div id="custom-progress-text" class="progress-text">游戏正在初始化... 0%</div>
-                </div>
+                </div> -->
             </div>
         </div>
 
