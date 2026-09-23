@@ -112,7 +112,7 @@
                         if (height > width) {
                             // 高度大于宽度（竖屏状态）：顺时针旋转90度并填满全屏
                             if (currentOrientation !== "portrait") {
-                                screenEl.style.position = "fixed";
+                                screenEl.style.position = "absolute";
                                 screenEl.style.top = "50%";
                                 screenEl.style.left = "50%";
                                 screenEl.style.width = height + "px"; // 宽高对调撑满
@@ -124,7 +124,7 @@
                         } else {
                             // 宽度大于高度（正常横屏状态）：还原样式
                             if (currentOrientation !== "landscape") {
-                                screenEl.style.position = "";
+                                screenEl.style.position = "absolute";
                                 screenEl.style.top = "";
                                 screenEl.style.left = "";
                                 screenEl.style.width = "100%";
@@ -229,7 +229,7 @@
 <script src="src/import-map.30e5c.json" type="systemjs-importmap" charset="utf-8"> </script>
 
 <script>
-    System.import('./index.b87b4.js').catch(function(err) { console.error(err); })
+    System.import('./index.d8bde.js').catch(function(err) { console.error(err); })
 </script>
 
 
