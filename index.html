@@ -94,6 +94,44 @@
                 // 增加一个变量，避免每帧重复修改样式
                 let currentOrientation = "landscape";
 
+                (function () {
+                    // 1. 禁用双指缩放手势
+                    document.addEventListener(
+                        "touchstart",
+                        function (event) {
+                            if (event.touches.length > 1) {
+                                event.preventDefault(); // 阻止多指触控的默认缩放行为
+                            }
+                        },
+                        { passive: false },
+                    );
+
+                    // 2. 禁用双击缩放（iOS 经典的连续点击屏幕放大）
+                    var lastTouchEnd = 0;
+                    document.addEventListener(
+                        "touchend",
+                        function (event) {
+                            var now = new Date().getTime();
+                            if (now - lastTouchEnd <= 300) {
+                                event.preventDefault(); // 阻止双击行为
+                            }
+                            lastTouchEnd = now;
+                        },
+                        false,
+                    );
+
+                    // 3. 拦截鼠标滚轮缩放（防 PC 调试或部分支持滚轮的平板设备）
+                    document.addEventListener(
+                        "wheel",
+                        function (event) {
+                            if (event.ctrlKey) {
+                                event.preventDefault();
+                            }
+                        },
+                        { passive: false },
+                    );
+                })();
+
                 // 60帧/秒
                 progressTimer = setInterval(() => {
                     let currentLoaded = 0;
@@ -129,36 +167,36 @@
 
                     // ================== 新增：判断宽高比并旋转功能 ==================
                     const screenEl = screen();
-                    // if (screenEl) {
-                    //     const width = window.innerWidth;
-                    //     const height = window.innerHeight;
+                    if (screenEl) {
+                        const width = window.innerWidth;
+                        const height = window.innerHeight;
 
-                    //     if (height > width) {
-                    //         // 高度大于宽度（竖屏状态）：顺时针旋转90度并填满全屏
-                    //         if (currentOrientation !== "portrait") {
-                    //             screenEl.style.position = "fixed";
-                    //             screenEl.style.top = "50%";
-                    //             screenEl.style.left = "50%";
-                    //             screenEl.style.width = height + "px"; // 宽高对调撑满
-                    //             screenEl.style.height = width + "px"; // 宽高对调撑满
-                    //             screenEl.style.transform = "translate(-50%, -50%) rotate(90deg)";
-                    //             screenEl.style.transformOrigin = "center";
-                    //             currentOrientation = "portrait";
-                    //         }
-                    //     } else {
-                    //         // 宽度大于高度（正常横屏状态）：还原样式
-                    //         if (currentOrientation !== "landscape") {
-                    //             screenEl.style.position = "";
-                    //             screenEl.style.top = "";
-                    //             screenEl.style.left = "";
-                    //             screenEl.style.width = "100%";
-                    //             screenEl.style.height = "100%";
-                    //             screenEl.style.transform = "";
-                    //             screenEl.style.transformOrigin = "";
-                    //             currentOrientation = "landscape";
-                    //         }
-                    //     }
-                    // }
+                        if (height > width) {
+                            // 高度大于宽度（竖屏状态）：顺时针旋转90度并填满全屏
+                            if (currentOrientation !== "portrait") {
+                                screenEl.style.position = "fixed";
+                                screenEl.style.top = "50%";
+                                screenEl.style.left = "50%";
+                                screenEl.style.width = height + "px"; // 宽高对调撑满
+                                screenEl.style.height = width + "px"; // 宽高对调撑满
+                                screenEl.style.transform = "translate(-50%, -50%) rotate(90deg)";
+                                screenEl.style.transformOrigin = "center";
+                                currentOrientation = "portrait";
+                            }
+                        } else {
+                            // 宽度大于高度（正常横屏状态）：还原样式
+                            if (currentOrientation !== "landscape") {
+                                screenEl.style.position = "";
+                                screenEl.style.top = "";
+                                screenEl.style.left = "";
+                                screenEl.style.width = "100%";
+                                screenEl.style.height = "100%";
+                                screenEl.style.transform = "";
+                                screenEl.style.transformOrigin = "";
+                                currentOrientation = "landscape";
+                            }
+                        }
+                    }
                     // =============================================================
 
                     // 淡出隐藏
@@ -173,6 +211,23 @@
                         }
                     }
                 }, 16);
+
+                // 【大招】如果输入法弹出强行让页面滚动或缩放，把它硬拉回来
+                window.addEventListener("resize", function () {
+                    // 当输入法引发 resize 时，强行将加载页恢复成最初拿到的 px 宽高
+                    const width = window.innerWidth;
+                    const height = window.innerHeight;
+                    screenEl.style.width = width + "px";
+                    screenEl.style.height = width + "px";
+                    window.scrollTo(0, 0); // 强行把被输入法顶上去的页面拉回原点
+                });
+
+                window.addEventListener("scroll", function () {
+                    // 严禁加载期间任何形式的页面滚位
+                    if (document.body.scrollTop !== 0 || document.documentElement.scrollTop !== 0) {
+                        window.scrollTo(0, 0);
+                    }
+                });
 
                 // 全局原生 fetch
                 const originalFetch = window.fetch;
