@@ -151,7 +151,7 @@
       // 全局原生 fetch
       const originalFetch = window.fetch;
       window.fetch = async function (input, init) {
-        const url = typeof input === "string" ? input : input.url;
+        const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
         
         const isBigFile = fileFilters.some((filter) => url.includes(filter));
         
@@ -168,16 +168,21 @@
         const reader = response.body.getReader();
         const headers = new Headers(response.headers);
         const stream = new ReadableStream({
-          async start(controller) {
-            while (true) {
+          // 由下游需求逐块读取，避免进度统计提前缓冲完整引擎文件。
+          async pull(controller) {
+            try {
               const { done, value } = await reader.read();
-              if (done) { controller.close(); break; }
+              if (done) { controller.close(); reader.releaseLock(); return; }
               if (!loadedSizes[url]) loadedSizes[url] = 0;
-              
-              // 
               loadedSizes[url] += value.length;
               controller.enqueue(value);
+            } catch (error) {
+              controller.error(error);
+              reader.releaseLock();
             }
+          },
+          async cancel(reason) {
+            try { await reader.cancel(reason); } finally { reader.releaseLock(); }
           },
         });
         return new Response(stream, { headers, status: response.status, statusText: response.statusText });
@@ -229,7 +234,7 @@
 <script src="src/import-map.a4643.json" type="systemjs-importmap" charset="utf-8"> </script>
 
 <script>
-    System.import('./index.ec076.js').catch(function(err) { console.error(err); })
+    System.import('./index.0754e.js').catch(function(err) { console.error(err); })
 </script>
 
 
