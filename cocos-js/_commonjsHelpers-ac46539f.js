@@ -1,1 +1,14 @@
-System.register([],(function(t){"use strict";return{execute:function(){t("c",(function(t,e){return t(e={exports:{}},e.exports),e.exports}))}}}));
+System.register([], (function (exports) {
+	'use strict';
+	return {
+		execute: (function () {
+
+			exports('c', createCommonjsModule);
+
+			function createCommonjsModule(fn, module) {
+				return module = { exports: {} }, fn(module, module.exports), module.exports;
+			}
+
+		})
+	};
+}));

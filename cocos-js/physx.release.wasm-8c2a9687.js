@@ -1,1 +1,12 @@
-System.register([],(function(t){"use strict";return{execute:function(){t("default",(function(){}))}}}));
+System.register([], (function (exports) {
+	'use strict';
+	return {
+		execute: (function () {
+
+			exports('default', physx_release_wasm);
+
+			function physx_release_wasm () {}
+
+		})
+	};
+}));
