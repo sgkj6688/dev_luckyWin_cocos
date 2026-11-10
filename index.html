@@ -28,126 +28,373 @@
   <!--<meta name="browsermode" content="application">-->
   <meta name="x5-page-mode" content="app">
 
-  <link rel="stylesheet" type="text/css" href="style.f76d1.css"/>
   <link rel="icon" href="title.ico" type="image/x-icon" />
   <link rel="shortcut icon" href="title.ico" type="image/x-icon" />
+  <link id="startup-poster-fallback" rel="alternate" type="image/png" href="./startup-poster.50e0a.png" />
 
   <style>
+    /* Creator 3.8.4基础样式较小，内联避免额外请求及晚到的布局切换；不引入字体或动画依赖。 */
+html {
+  -ms-touch-action: none;
+}
+
+body, canvas, div {
+  display: block;
+  outline: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  -khtml-user-select: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+/* Remove spin of input type number */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+body {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  margin: 0;
+
+  cursor: default;
+  color: #888;
+  background-color: #333;
+
+  text-align: center;
+  font-family: Helvetica, Verdana, Arial, sans-serif;
+
+  display: flex;
+  flex-direction: column;
+}
+
+canvas {
+  background-color: rgba(0, 0, 0, 0);
+}
+
+#GameDiv, #Cocos3dGameContainer, #GameCanvas {
+  width: 100%;
+  height: 100%;
+}
+
+:root {
+  --safe-top: env(safe-area-inset-top);
+  --safe-right: env(safe-area-inset-right);
+  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-left: env(safe-area-inset-left);
+}
+
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #0b0706; }
+    #GameDiv, #Cocos3dGameContainer, #GameCanvas { width: 100%; height: 100%; }
+    #GameCanvas { display: block; touch-action: none; }
     #custom-loading-screen {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background-image: url("./splashBg.ico"); 
-      background-repeat: no-repeat; background-position: center center; background-size: cover;
-      z-index: 9999; display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
-      padding-bottom: 12%; box-sizing: border-box;
+      position: fixed; inset: 0; z-index: 9999; overflow: hidden;
+      background: #0b0706;
+      color: #fff4d8; font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
     }
+    .startup-background, .startup-shade { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; }
+    .startup-background { object-fit: fill; }
+    .startup-poster {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: calc(var(--startup-unit, 1px) * 1920); height: calc(var(--startup-unit, 1px) * 1080);
+      pointer-events: none; user-select: none;
+    }
+    .startup-poster img { width: 100%; height: 100%; }
+    .startup-shade { background: rgba(9, 8, 8, 0.588235); }
     .progress-container {
-      position: relative; flex-shrink: 0; width: 70%; height: 10px; background: rgba(0, 0, 0, 0.6); border-radius: 5px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1);
+      position: absolute; left: 50%; bottom: calc(var(--startup-unit, 1px) * 232.5);
+      transform: translateX(-50%); width: calc(var(--startup-unit, 1px) * 1450);
+      height: calc(var(--startup-unit, 1px) * 15); min-height: 3px;
+      overflow: hidden; border-radius: 20px; background: #41403d;
     }
-    .progress-bar {
-      position: absolute; width: 0%; height: 100%; background: #059669; transition: width 0.1s linear;
-    }
+    .progress-bar { width: 100%; transform-origin: left center; transform: scaleX(0); height: 100%; border-radius: 20px; background: linear-gradient(90deg, #8e6b19, #e0b548 70%, #ffdf8a); }
     .progress-text {
-      flex-shrink: 0; width: 70%; margin-bottom: 12px; text-align: center; line-height: 20px; color: #e5e7eb; font-size: 14px; font-family: sans-serif; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      position: absolute; left: 5%; width: 90%; bottom: calc(var(--startup-unit, 1px) * 280);
+      text-align: center; font-size: max(14px, calc(var(--startup-unit, 1px) * 32));
+      line-height: 1.4; text-shadow: 0 1px 4px #000;
     }
   </style>
 
   <script>
     (function () {
-      const fileFilters = ['cocos-js/', 'src/settings.'];
-      
-      let totalSize = 0;        // 
-      let loadedSizes = {};     // 
-      let virtualPercent = 0;
-      let realPercent = 0;
-      let progressTimer = null;
-      // 从 HTML 入口记录同一时钟起点，供大厅阶段耗时计算；缓存类型由实际采样另外标注。
       window.__HALL_BOOT_AT__ = performance.now();
-      window.__COCOS_READY__ = false; 
-
-      const bar = () => document.getElementById("custom-progress-bar");
-      const text = () => document.getElementById("custom-progress-text");
-      const screen = () => document.getElementById("custom-loading-screen");
-
-      // 增加一个变量，避免每帧重复修改样式
-      let currentOrientation = "landscape";
-
-      // 60帧/秒 
-      progressTimer = setInterval(() => {
-        let currentLoaded = 0;
-        for (let k in loadedSizes) {
-          currentLoaded += loadedSizes[k];
+      window.__COCOS_READY__ = false;
+      let stage = 0, progress = 0, owned = false, hidden = false;
+      let lastWidth = 0, lastHeight = 0, lastTextKey = -1, lastLabel = null;
+      let posterUsers = 0;
+      const posterDecodes = new WeakMap();
+      function posterLoaded(image) {
+        let state = posterDecodes.get(image);
+        if (state) return state;
+        state = { valid: true, ready: false, promise: null };
+        posterDecodes.set(image, state);
+        if (typeof image.decode !== 'function') { state.ready = true; return state; }
+        state.promise = image.decode().then(() => {
+          if (!state.valid) return null;
+          state.ready = true; return image;
+        }, () => null);
+        return state;
+      }
+      function forgetPoster(image) {
+        const state = posterDecodes.get(image);
+        if (state) state.valid = false;
+        posterDecodes.delete(image);
+      }
+      function releasePosterElement() {
+        const image = get('startup-poster');
+        if (hidden && posterUsers === 0 && image) {
+          const picture = image.parentElement;
+          forgetPoster(image); image.onload = null; image.onerror = null; image.removeAttribute('src'); picture.remove();
         }
-
-        // 核心动态算法
-        if (totalSize > 0) {
-          realPercent = Math.min(Math.floor((currentLoaded / totalSize) * 100), 100);
-        }
-
-        if (virtualPercent < realPercent) {
-          virtualPercent += 2;
-        } else if (virtualPercent < 98) {
-          // 在  没有发来就绪信号前，死死卡在 98% 蓄势待发
-          virtualPercent += 0.2;
-        }
-
-        // 当  执行成功后
-        if (window.__COCOS_READY__) {
-          virtualPercent += 5;
-        }
-
-        if (virtualPercent > 100) virtualPercent = 100;
-        const showPercent = Math.floor(virtualPercent);
-
-        // 更新界面
-        const barEl = bar(); const textEl = text();
-        if (barEl) barEl.style.width = showPercent + "%";
-        if (textEl) textEl.innerText = `Loading game core resources... ${showPercent}%`;
-
-        // ================== 新增：判断宽高比并旋转功能 ==================
-        const screenEl = screen();
-                    if (screenEl) {
-                        const width = window.innerWidth;
-                        const height = window.innerHeight;
-
-                        if (height > width) {
-                            // 高度大于宽度（竖屏状态）：顺时针旋转90度并填满全屏
-                            if (currentOrientation !== "portrait") {
-                                screenEl.style.position = "fixed";
-                                screenEl.style.top = "50%";
-                                screenEl.style.left = "50%";
-                                screenEl.style.width = height + "px"; // 宽高对调撑满
-                                screenEl.style.height = width + "px"; // 宽高对调撑满
-                                screenEl.style.transform = "translate(-50%, -50%) rotate(90deg)";
-                                screenEl.style.transformOrigin = "center";
-                                currentOrientation = "portrait";
-                            }
-                        } else {
-                            // 宽度大于高度（正常横屏状态）：还原样式
-                            if (currentOrientation !== "landscape") {
-                                screenEl.style.position = "";
-                                screenEl.style.top = "";
-                                screenEl.style.left = "";
-                                screenEl.style.width = "100%";
-                                screenEl.style.height = "100%";
-                                screenEl.style.transform = "";
-                                screenEl.style.transformOrigin = "";
-                                currentOrientation = "landscape";
-                            }
-                        }
-                    }
-        // =============================================================
-
-        // 淡出隐藏
-        if (showPercent >= 100 && window.__COCOS_READY__) {
-          clearInterval(progressTimer);
-          if (screen()) {
-            screen().style.transition = "opacity 0.4s ease";
-            screen().style.opacity = "0";
-            setTimeout(() => { screen().style.display = "none"; }, 400);
+      }
+      const languages = {
+        ZH: ['正在启动', '正在登录', '正在准备大厅', '准备完成', '等待时间较长，请稍候或刷新页面'],
+        EN: ['Starting…', 'Signing in…', 'Preparing lobby…', 'Ready', 'Taking longer than expected. Please wait or refresh the page.'],
+        VN: ['Đang khởi động…', 'Đang đăng nhập…', 'Đang chuẩn bị sảnh…', 'Sẵn sàng', 'Đang mất nhiều thời gian hơn. Vui lòng chờ hoặc tải lại trang.'],
+        PT: ['Iniciando…', 'Entrando…', 'Preparando o lobby…', 'Pronto', 'Está demorando mais que o esperado. Aguarde ou recarregue a página.']
+      };
+      let language = 'VN';
+      try { language = (new URL(window.location.href).searchParams.get('c') || 'VN').toUpperCase(); } catch (_) {}
+      const words = languages[language] || languages.VN;
+      const phaseWords = {
+        ZH: ['正在准备运行环境', '正在准备登录界面', '正在验证登录', '正在加载大厅资源与列表', '正在准备大厅首屏'],
+        EN: ['Preparing runtime', 'Preparing sign-in screen', 'Verifying sign-in', 'Loading lobby resources and list', 'Preparing lobby content'],
+        VN: ['Đang chuẩn bị môi trường', 'Đang chuẩn bị màn hình đăng nhập', 'Đang xác minh đăng nhập', 'Đang tải tài nguyên và danh sách sảnh', 'Đang chuẩn bị nội dung sảnh'],
+        PT: ['Preparando ambiente', 'Preparando tela de login', 'Verificando login', 'Carregando recursos e lista do lobby', 'Preparando conteúdo do lobby']
+      };
+      const phaseLabels = phaseWords[language] || phaseWords.VN;
+      let label = words[0];
+      const waitWords = { ZH: '等待登录', EN: 'Waiting for sign-in', VN: 'Đang chờ đăng nhập', PT: 'Aguardando login' };
+      const pauseWords = { ZH: '加载已暂停，请检查网络或刷新页面', EN: 'Loading paused. Check your connection or refresh the page.', VN: 'Tải đã tạm dừng. Kiểm tra kết nối hoặc tải lại trang.', PT: 'Carregamento pausado. Verifique a conexão ou atualize a página.' };
+      const get = id => document.getElementById(id);
+      // 估时只驱动展示；真实阶段、业务登录和可交互标记仍由原链路发布。
+      // 依次为引擎、登录资源、业务登录、大厅场景/列表汇合、首屏业务就绪；预算单位ms。
+      const bounds = [0, 0.35, 0.55, 0.65, 0.90, 0.99], budgets = [5000, 4000, 1500, 2500, 3500];
+      let entry = 1, claimed = false, phase = 0, elapsed = 0, motion = 0, lastClock = performance.now();
+      let active = true, complete = false, background = !!document.hidden, blocked = false;
+      let catchFrom = 0, catchAt = -1, gates = {}, jobs = {}, attempts = {}, watching = false;
+      const waiting = () => phase === 2 && !gates.login;
+      const isSlow = () => !waiting() && elapsed >= Math.max(15000, budgets[phase] * 2);
+      // 到顶只表示估时用尽；活动标识不推动进度，也不证明底层请求仍在传输。
+      const stageWaiting = () => active && !complete && !blocked && !waiting() && elapsed >= budgets[phase];
+      const activityStep = () => stageWaiting() ? Math.floor(motion / 500) % 3 + 1 : 0;
+      function step() {
+        const now = performance.now(), delta = Math.max(0, now - lastClock); lastClock = now;
+        if (!active || complete) return;
+        if (!background && !blocked) { motion += delta; if (!waiting()) elapsed += delta; }
+        const target = bounds[phase] + (bounds[phase + 1] - bounds[phase]) * 0.9 * Math.min(elapsed / budgets[phase], 1);
+        if (catchAt >= 0) {
+          const t = Math.min(1, (motion - catchAt) / 200);
+          progress = Math.max(progress, catchFrom + (target - catchFrom) * (1 - Math.pow(1 - t, 3)));
+          if (t === 1) catchAt = -1;
+        } else progress = Math.max(progress, target);
+      }
+      // 真实节点只重定向这一个200ms快进，不为早到或并行节点排队补播。
+      function advance(next) {
+        if (next <= phase) return;
+        phase = next; elapsed = 0; catchFrom = progress; catchAt = motion;
+      }
+      function refreshBlockers() {
+        // 恢复仍沿用本段有效耗时；重置会让进度等待新时钟追上旧值，只有换阶段/入口才清零。
+        blocked = Object.keys(jobs).some(key => jobs[key].state === 'failed' || jobs[key].state === 'cancelled');
+      }
+      function visibility() { step(); background = !!document.hidden; }
+      function bootstrapFailure(event) {
+        // 脚本标签及SystemJS失败可能不经过fetch；仅首次引导有效，后续入口不能接收旧模块错误。
+        if (!active || complete || claimed) return;
+        const message = typeof event.reason?.message === 'string' ? event.reason.message : '';
+        const source = event.target?.tagName === 'SCRIPT' ? event.target.src : event.filename;
+        let entryScript = false;
+        try {
+          const url = new URL(source, window.location.href);
+          entryScript = !!source && url.origin === new URL(window.location.href).origin
+            && (/\/(?:cocos-js\/|src\/(?:polyfills\.bundle|system\.bundle|import-map\.))/.test(url.pathname)
+              || /\/(?:application|index)\.[\w.-]+\.js$/.test(url.pathname));
+        } catch (_) { /* 无法归属的外部脚本不冻结启动。 */ }
+        if (entryScript || message.includes('SystemJS')) work('bootstrap', 'failed');
+      }
+      function watch(enabled) {
+        if (watching === enabled) return;
+        watching = enabled;
+        if (enabled) {
+          document.addEventListener?.('visibilitychange', visibility);
+          if (!claimed) {
+            window.addEventListener?.('unhandledrejection', bootstrapFailure);
+            window.addEventListener?.('error', bootstrapFailure, true);
           }
+        } else {
+          document.removeEventListener?.('visibilitychange', visibility);
+          window.removeEventListener?.('unhandledrejection', bootstrapFailure);
+          window.removeEventListener?.('error', bootstrapFailure, true);
         }
-      }, 16);
+      }
+      function signal(name, expected = entry) {
+        if (expected !== entry || !active || complete) return;
+        step();
+        if (name === 'engine_ready') {
+          gates.engine = true;
+          for (const key of Object.keys(jobs)) if (key.startsWith('fetch:')) { jobs[key].state = 'done'; attempts[key]++; }
+          refreshBlockers(); advance(1);
+        }
+        if (name === 'startup_feedback_handoff') { gates.draw = true; advance(2); }
+        if (name === 'connect_start' || name === 'login_request') { gates.login = true; advance(2); }
+        if (name === 'login_success') { gates.login = true;
+          for (const key of ['transport', 'login']) if (jobs[key]) jobs[key].state = 'done';
+          refreshBlockers(); advance(3); }
+        if (name === 'scene_loaded') { gates.scene = true; if (jobs.scene) jobs.scene.state = 'done'; refreshBlockers(); }
+        if (gates.scene && gates.list) advance(4);
+        if (name === 'hall_interactive') { complete = true; progress = 1; catchAt = -1; watch(false); }
+      }
+      function beginEntry(kind = "login") {
+        // 首个HallStartup实例认领HTML已运行的时钟；同页后续批次另起，但不重新显示已移交的HTML。
+        if (!claimed) {
+          step(); claimed = true;
+          window.removeEventListener?.('unhandledrejection', bootstrapFailure);
+          window.removeEventListener?.('error', bootstrapFailure, true);
+          // 登录场景已实际开始初始化，首次引导已恢复；不将此状态写成新的业务mark。
+          delete jobs.bootstrap; attempts.bootstrap = (attempts.bootstrap || 0) + 1; refreshBlockers();
+          return entry;
+        }
+        entry++; stage = 0; label = words[0]; phase = 0; progress = 0; elapsed = 0; motion = 0; catchAt = -1;
+        gates = {}; jobs = {}; attempts = {}; blocked = false; active = true; complete = false; owned = false;
+        lastClock = performance.now(); background = !!document.hidden; watch(true);
+        if (window.__HALL_ENGINE_READY_AT__ !== undefined) signal('engine_ready');
+        if (kind !== 'login') { active = false; watch(false); }
+        return entry;
+      }
+      function work(key, initial = 'running', expected = entry) {
+        if (expected !== entry || !active || complete) return () => false;
+        const attempt = (attempts[key] || 0) + 1; attempts[key] = attempt;
+        let settled = false;
+        const update = state => {
+          if (expected !== entry || !active || complete || settled || attempts[key] !== attempt) return false;
+          step(); jobs[key].state = state;
+          // 一次性请求完成后拒绝迟到反写；连接/可见性仍允许后续中断。
+          if (state === 'done' && key !== 'transport' && key !== 'hall_visible') settled = true;
+          if ((key === 'transport' || key === 'login') && state === 'running') { gates.login = true; advance(2); }
+          // 协议响应通过不等于列表结构可用，汇合点只接受大厅验证并应用后的通知。
+          if (key === 'list_apply' && state === 'done') gates.list = true;
+          refreshBlockers(); if (gates.scene && gates.list) advance(4);
+          return true;
+        };
+        step(); jobs[key] = { attempt, state: initial }; update(initial); return update;
+      }
+      watch(true);
 
+      function render() {
+        if (hidden) return;
+        const screen = get('custom-loading-screen'), bar = get('custom-progress-bar'), text = get('custom-progress-text');
+        if (bar) { const transform = 'scaleX(' + progress + ')'; if (bar.style.transform !== transform) bar.style.transform = transform; }
+        const activity = activityStep();
+        const textKey = phase + (waiting() ? 8 : 0) + (isSlow() ? 16 : 0) + (owned ? 32 : 0) + (blocked ? 64 : 0);
+        if (text && (textKey !== lastTextKey || owned && label !== lastLabel)) {
+          const nextText = owned ? label.replace(/ \.{1,3}$/, '') : (waiting() ? waitWords[language] || waitWords.VN : phaseLabels[phase]) + (blocked ? ' · ' + (pauseWords[language] || pauseWords.VN) : isSlow() ? ' · ' + words[4] : '');
+          if (text.textContent !== nextText) text.textContent = nextText;
+          lastTextKey = textKey; lastLabel = label;
+        }
+        // 活动点不进入live region，避免读屏软件每半秒重复朗读整段状态。
+        // 字符码避免Creator模板MD5重写把单独的点识别为当前目录入口。
+        const indicator = get('custom-progress-activity'), activityText = activity ? ' ' + String.fromCharCode(46).repeat(activity) : '';
+        if (indicator && indicator.textContent !== activityText) indicator.textContent = activityText;
+        const w = window.innerWidth, h = window.innerHeight;
+        if (screen && (lastWidth !== w || lastHeight !== h)) {
+          lastWidth = w; lastHeight = h;
+          const width = Math.max(w, h), height = Math.min(w, h);
+          screen.style.width = width + 'px'; screen.style.height = height + 'px';
+          screen.style.left = '50%'; screen.style.top = '50%';
+          screen.style.transform = h > w ? 'translate(-50%, -50%) rotate(90deg)' : 'translate(-50%, -50%)';
+          screen.style.setProperty('--startup-unit', Math.min(width / 1920, height / 1080) + 'px');
+        }
+      }
+      function handoff() {
+        if (hidden) return;
+        hidden = true;
+        if (!owned) { active = false; watch(false); }
+        window.__COCOS_READY__ = true;
+        clearInterval(timer);
+        const screen = get('custom-loading-screen');
+        if (screen) {
+          screen.style.display = 'none';
+          const image = screen.querySelector('.startup-background');
+          if (image) { image.removeAttribute('src'); image.remove(); }
+          releasePosterElement();
+        }
+      }
+      window.__HALL_LOADING__ = {
+        estimated: true,
+        get progress() { return progress; },
+        get entry() { return entry; },
+        get phase() { return phase; },
+        get slow() { return isSlow(); },
+        get paused() { return blocked; },
+        get waiting() { return waiting(); },
+        get stageWaiting() { return stageWaiting(); },
+        get activityStep() { return activityStep(); },
+        beginEntry, signal, work,
+        tick(owner) { if ((owner === 'cocos') === owned) step(); return progress; },
+        adopt() { step(); owned = true; },
+        resumeHtml(expected = entry) { if (expected === entry && !hidden && active) { step(); owned = false; } },
+        cancel(expected = entry) { if (expected !== entry) return; step(); active = false; watch(false); },
+        update(nextStage, nextProgress, nextLabel) {
+          if (nextStage < stage) return;
+          stage = nextStage; label = nextLabel || words[Math.min(stage, 3)]; render();
+        },
+        handoff,
+        posterLoaded,
+        posterError(image) {
+          forgetPoster(image);
+          const fallback = get('startup-poster-fallback');
+          if (image.dataset.fallback || !fallback) { image.dataset.fallback = 'failed'; image.style.visibility = 'hidden'; return; }
+          // Creator会改写src/href而不会改写srcset；仅在WebP失败时请求PNG，避免两张图同时下载。
+          image.dataset.fallback = 'loading'; image.src = fallback.href;
+        },
+        poster(ready) {
+          const image = get('startup-poster');
+          if (!image) { ready(null); return () => {}; }
+          posterUsers++;
+          let active = true, settled = false, decoding = null;
+          const unlisten = () => { image.removeEventListener('load', loaded); image.removeEventListener('error', failed); };
+          const finish = value => {
+            if (!active || settled) return;
+            settled = true; unlisten(); ready(value);
+          };
+          const loaded = () => {
+            if (!active || settled) return;
+            // 缓存坏图的error可能仍在队列中；由onerror启动一次PNG回退，不能在这里提前结束订阅。
+            if (image.naturalWidth <= 0) { if (image.dataset.fallback === 'failed') finish(null); return; }
+            if (image.dataset.fallback === 'loading') image.dataset.fallback = 'loaded';
+            // load/complete不代表解码完成；复用已解码图片，失败或取消都不阻塞外壳移交。
+            // HTML加载时已开始解码，缓存就绪可同步接管；首帧动画已就绪时也能保留这次淡出。
+            const state = posterLoaded(image);
+            if (state.ready) { finish(image); return; }
+            if (decoding === state) return;
+            decoding = state; state.promise.then(value => { if (state.valid) finish(value); });
+          };
+          const failed = () => { if (image.dataset.fallback !== 'loading') finish(null); };
+          image.addEventListener('load', loaded); image.addEventListener('error', failed);
+          if (image.complete) loaded();
+          return () => {
+            if (!active) return;
+            active = false; unlisten(); posterUsers--; releasePosterElement();
+          };
+        },
+        render
+      };
+      // 保留既有资源流的背压、取消及错误传播；阶段反馈不依赖下载完成或字节计数。
+      const fileFilters = ['cocos-js/', 'src/settings.'];
+      let totalSize = 0; const loadedSizes = {};
       // 全局原生 fetch
       const originalFetch = window.fetch;
       window.fetch = async function (input, init) {
@@ -157,14 +404,20 @@
         
         if (!isBigFile) return originalFetch(input, init);
 
-        const response = await originalFetch(input, init);
-        if (!response.body) return response;
+        const start = url.includes('cocos-js/') ? url.indexOf('cocos-js/') : url.indexOf('src/settings.');
+        const display = gates.engine ? () => false : work('fetch:' + url.slice(start).split(/[?#]/, 1)[0]);
+        let response;
+        try { response = await originalFetch(input, init); }
+        catch (error) { display('failed'); throw error; }
+        if (!response.body) { display(response.ok ? 'done' : 'failed'); return response; }
 
         const contentLength = response.headers.get('content-length');
         if (contentLength) {
             totalSize += parseInt(contentLength, 10);
         }
 
+        if (response.ok === false) display('failed');
+        let cancelled = false;
         const reader = response.body.getReader();
         const headers = new Headers(response.headers);
         const stream = new ReadableStream({
@@ -172,40 +425,53 @@
           async pull(controller) {
             try {
               const { done, value } = await reader.read();
-              if (done) { controller.close(); reader.releaseLock(); return; }
+              if (cancelled) return;
+              if (done) { display(response.ok ? 'done' : 'failed'); controller.close(); reader.releaseLock(); return; }
               if (!loadedSizes[url]) loadedSizes[url] = 0;
               loadedSizes[url] += value.length;
               controller.enqueue(value);
             } catch (error) {
-              controller.error(error);
+              if (!cancelled) display("failed"); controller.error(error);
               reader.releaseLock();
             }
           },
           async cancel(reason) {
+            cancelled = true; display("cancelled");
             try { await reader.cancel(reason); } finally { reader.releaseLock(); }
           },
         });
         return new Response(stream, { headers, status: response.status, statusText: response.statusText });
       };
 
-      // 15秒防异常卡死
-      setTimeout(() => {
-          if (!window.__COCOS_READY__) {
-              console.warn("⏳ 触发异常安全兜底释放...");
-              window.__COCOS_READY__ = true;
-          }
-      }, 15000); 
+      // 估时驱动进度展示，真实节点校准阶段；仅大厅真正可交互后结束启动层。
+      const timer = setInterval(() => {
+        if (window.__COCOS_READY__ && !owned) handoff();
+        else {
+          if (!gates.engine && window.__HALL_ENGINE_READY_AT__ !== undefined) signal('engine_ready');
+          if (!owned) step();
+          render();
+        }
+      }, 16);
+
     })();
   </script>
 </head>
 <body>
   <!--  -->
   <div id="custom-loading-screen">
-    <div id="custom-progress-text" class="progress-text">Initializing game... 0%</div>
+    <!-- img.src由Creator同步重写MD5路径；内联CSS的url不会同步替换。图片失败也不阻挡文字和进度。 -->
+    <img class="startup-background" src="./startup-background.6a15e.jpg" alt="" aria-hidden="true" draggable="false" onerror="this.style.visibility='hidden'">
+    <div class="startup-poster" aria-hidden="true">
+      <img id="startup-poster" src="./startup-poster.f826f.webp" alt="" draggable="false" decoding="async" onload="window.__HALL_LOADING__.posterLoaded(this)" onerror="window.__HALL_LOADING__.posterError(this)">
+    </div>
+    <div class="startup-shade"></div>
+    <div class="progress-text"><span id="custom-progress-text" role="status" aria-live="polite">Đang khởi động…</span><span id="custom-progress-activity" aria-hidden="true"></span></div>
     <div class="progress-container">
       <div id="custom-progress-bar" class="progress-bar"></div>
     </div>
   </div>
+
+  <script>window.__HALL_LOADING__.render();</script>
 
   <div id="GameDiv" cc_exact_fit_screen="true">
       <div id="Cocos3dGameContainer">
@@ -215,12 +481,6 @@
 
   <!--  -->
   
-<script src="./vconsole.min.js"></script>
-<script type="text/javascript">
-    // open web debugger console
-    window.VConsole && (window.vConsole = new VConsole());
-</script>
-
 
 <!-- Polyfills bundle. -->
 
@@ -234,7 +494,7 @@
 <script src="src/import-map.a4643.json" type="systemjs-importmap" charset="utf-8"> </script>
 
 <script>
-    System.import('./index.0754e.js').catch(function(err) { console.error(err); })
+    System.import('./index.34e34.js').catch(function(err) { console.error(err); })
 </script>
 
 
