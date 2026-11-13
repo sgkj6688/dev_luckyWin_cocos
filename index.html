@@ -104,6 +104,17 @@ canvas {
       background: #0b0706;
       color: #fff4d8; font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
     }
+    /* 进游戏/请求等待层：翻转与淡入只用 transform、opacity，由合成线程驱动，主线程被资源解析或切场景占住时仍在动。 */
+    #game-wait { position: fixed; inset: 0; z-index: 9000; display: none; touch-action: none; }
+    #game-wait.on { display: block; }
+    /* 与 wait2 预制体一致：先透明拦截输入，0.5 秒后用 0.5 秒淡入遮罩。 */
+    #game-wait .game-wait-fade { position: absolute; inset: 0; background: rgba(9, 8, 8, 0.588235); opacity: 0; animation: game-wait-fade 0.5s linear 0.5s forwards; will-change: opacity; }
+    /* 黑桃筹码取自 wait2 的 chouma 图集正面帧；外层跟随游戏画面朝向，内层绕竖轴匀速翻转。 */
+    #game-wait .game-wait-chip { position: absolute; left: 50%; top: 50%; width: 18vmin; max-width: 96px; transform: translate(-50%, -50%); perspective: 400px; }
+    #game-wait.rotated .game-wait-chip { transform: translate(-50%, -50%) rotate(90deg); }
+    #game-wait .game-wait-chip img { display: block; width: 100%; animation: game-wait-flip 1.4s linear infinite; will-change: transform; user-select: none; pointer-events: none; }
+    @keyframes game-wait-fade { to { opacity: 1; } }
+    @keyframes game-wait-flip { to { transform: rotateY(360deg); } }
     .startup-background, .startup-shade { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; }
     .startup-background { object-fit: fill; }
     .startup-poster {
@@ -472,6 +483,26 @@ canvas {
   </div>
 
   <script>window.__HALL_LOADING__.render();</script>
+  <div id="game-wait" aria-hidden="true"><div class="game-wait-fade">
+    <!-- img.src 由 Creator 同步重写 MD5 路径；图片失败时仍保留蒙版和输入拦截。 -->
+    <div class="game-wait-chip"><img src="./game-wait-chip.18cf3.png" alt="" draggable="false" onerror="this.style.visibility='hidden'"></div>
+  </div></div>
+  <script>
+    // ViewManager.showWait/closeWait 的 Web 实现；重复 show 不重启淡入，hide 后下次 show 重新计时。
+    window.__GAME_WAIT__ = (function () {
+      var node = document.getElementById('game-wait');
+      return {
+        // upright：当前是竖屏游戏，内容已在画布内转正，筹码不再跟随画布旋转。
+        show: function (upright) {
+          // 引擎把横屏画面转 90 度时写在 #GameDiv 的 transform 上，筹码跟随它保持与游戏画面同向。
+          var game = document.getElementById('GameDiv');
+          node.classList.toggle('rotated', !upright && !!game && game.style.transform.indexOf('rotate(90deg)') >= 0);
+          node.classList.add('on');
+        },
+        hide: function () { node.classList.remove('on'); }
+      };
+    })();
+  </script>
 
   <div id="GameDiv" cc_exact_fit_screen="true">
       <div id="Cocos3dGameContainer">
@@ -491,10 +522,10 @@ canvas {
 <script src="src/system.bundle.57753.js" charset="utf-8"> </script>
 
 <!-- Import map -->
-<script src="src/import-map.ab5de.json" type="systemjs-importmap" charset="utf-8"> </script>
+<script src="src/import-map.53afa.json" type="systemjs-importmap" charset="utf-8"> </script>
 
 <script>
-    System.import('./index.39b66.js').catch(function(err) { console.error(err); })
+    System.import('./index.df68f.js').catch(function(err) { console.error(err); })
 </script>
 
 
