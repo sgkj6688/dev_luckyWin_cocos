@@ -1,10 +1,1 @@
-System.register([], (function (exports) {
-	'use strict';
-	return {
-		execute: (function () {
-
-			var meshopt_decoder_wasm = exports('default', '');
-
-		})
-	};
-}));
+System.register([],(function(e){"use strict";return{execute:function(){e("default","")}}}));

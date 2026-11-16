@@ -109,10 +109,12 @@ canvas {
     #game-wait.on { display: block; }
     /* 与 wait2 预制体一致：先透明拦截输入，0.5 秒后用 0.5 秒淡入遮罩。 */
     #game-wait .game-wait-fade { position: absolute; inset: 0; background: rgba(9, 8, 8, 0.588235); opacity: 0; animation: game-wait-fade 0.5s linear 0.5s forwards; will-change: opacity; }
-    /* 黑桃筹码取自 wait2 的 chouma 图集正面帧；外层跟随游戏画面朝向，内层绕竖轴匀速翻转。 */
+    /* 黑桃筹码取自 wait2 的 chouma 图集正面帧；外层跟随游戏画面朝向，内层绕竖轴翻转。
+       翻转用 steps(14) 约 10 帧/秒：逐帧连续翻转会让合成器每帧重绘，低端机（PDBM00）上与进游戏的 WebGL 加载争用 GPU，
+       首次进轮盘实测慢约 1.7 秒，且耗时随翻转帧率升高；换成 2D 变换或去掉 will-change 都无效。 */
     #game-wait .game-wait-chip { position: absolute; left: 50%; top: 50%; width: 18vmin; max-width: 96px; transform: translate(-50%, -50%); perspective: 400px; }
     #game-wait.rotated .game-wait-chip { transform: translate(-50%, -50%) rotate(90deg); }
-    #game-wait .game-wait-chip img { display: block; width: 100%; animation: game-wait-flip 1.4s linear infinite; will-change: transform; user-select: none; pointer-events: none; }
+    #game-wait .game-wait-chip img { display: block; width: 100%; animation: game-wait-flip 1.4s steps(14) infinite; will-change: transform; user-select: none; pointer-events: none; }
     @keyframes game-wait-fade { to { opacity: 1; } }
     @keyframes game-wait-flip { to { transform: rotateY(360deg); } }
     .startup-background, .startup-shade { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; }
@@ -519,13 +521,13 @@ canvas {
 
 
 <!-- SystemJS support. -->
-<script src="src/system.bundle.57753.js" charset="utf-8"> </script>
+<script src="src/system.bundle.543e6.js" charset="utf-8"> </script>
 
 <!-- Import map -->
-<script src="src/import-map.053d7.json" type="systemjs-importmap" charset="utf-8"> </script>
+<script src="src/import-map.ec610.json" type="systemjs-importmap" charset="utf-8"> </script>
 
 <script>
-    System.import('./index.7912a.js').catch(function(err) { console.error(err); })
+    System.import('./index.c16e1.js').catch(function(err) { console.error(err); })
 </script>
 
 
